@@ -15,7 +15,10 @@ function email_config(): array
         'remetente'      => 'nao-responda@cecapescs.com.br',
         'nome_remetente' => 'CECAPE - Plataforma AutoriaSCS',
         'logo_esquerda'  => 'https://cecapescs.com.br/logos/logo-seeduc.png',
+        'logo_centro'    => 'https://cecapescs.com.br/logos/logo-autoriascs.png',
         'logo_direita'   => 'https://cecapescs.com.br/logos/logo-cecape.png',
+        // Inclui a senha provisória no e-mail de criação de conta / redefinição
+        'enviar_senha_provisoria' => true,
     ];
     return array_merge($padrao, $CONFIG['email'] ?? []);
 }
@@ -47,13 +50,16 @@ function enviar_email_conta(string $paraEmail, string $paraNome, string $titulo,
     }
 
     $logos = '';
-    if ($cfg['logo_esquerda'] !== '' || $cfg['logo_direita'] !== '') {
+    $imagens = array_filter([
+        'SEEDUC'    => $cfg['logo_esquerda'] ?? '',
+        'AutoriaSCS' => $cfg['logo_centro'] ?? '',
+        'CECAPE'    => $cfg['logo_direita'] ?? '',
+    ]);
+    if ($imagens) {
+        $largura = number_format(100 / count($imagens), 2, '.', '');
         $celulas = '';
-        if ($cfg['logo_esquerda'] !== '') {
-            $celulas .= '<td><img src="' . e($cfg['logo_esquerda']) . '" alt="SEEDUC"></td>';
-        }
-        if ($cfg['logo_direita'] !== '') {
-            $celulas .= '<td><img src="' . e($cfg['logo_direita']) . '" alt="CECAPE"></td>';
+        foreach ($imagens as $alt => $url) {
+            $celulas .= '<td style="width:' . $largura . '%"><img src="' . e($url) . '" alt="' . e($alt) . '"></td>';
         }
         $logos = '<table class="header-table"><tr>' . $celulas . '</tr></table>';
     }
@@ -67,8 +73,8 @@ function enviar_email_conta(string $paraEmail, string $paraNome, string $titulo,
     .container { width: 100%; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background-color: #ffffff; }
     .header { background-color: #ffffff; padding: 25px; text-align: center; border-bottom: 4px solid #00accf; }
     .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .header-table td { width: 50%; text-align: center; vertical-align: middle; padding: 10px; }
-    .header-table img { width: 100%; max-width: 180px; height: auto; display: inline-block; }
+    .header-table td { text-align: center; vertical-align: middle; padding: 10px; }
+    .header-table img { width: 100%; max-width: 160px; height: auto; display: inline-block; }
     .content { padding: 35px; background-color: #ffffff; }
     .card { background: #f8f9fa; padding: 25px; border-radius: 8px; border-left: 5px solid #00accf; margin: 20px 0; }
     .info-row { margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }

@@ -64,14 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             registrar_log('inserir', 'usuario', $novoId, 'Usuário do painel criado: ' . $nome . ' (' . $email . ')',
                 null, ['nome' => $nome, 'email' => $email, 'ativo' => $ativo]);
 
+            $dadosEmail = [
+                'Ação'             => 'Criação da conta',
+                'E-mail de acesso' => $email,
+            ];
+            if (!empty(email_config()['enviar_senha_provisoria'])) {
+                $dadosEmail['Senha provisória'] = $senha;
+            }
+            $dadosEmail += [
+                'Realizado por'  => $eu['nome'],
+                'Data e horário' => date('d/m/Y H:i'),
+            ];
             enviar_email_conta($email, $nome, 'Conta criada no painel AutoriaSCS',
-                'Uma conta de acesso ao painel administrativo da Plataforma AutoriaSCS foi criada para você. No primeiro acesso, será obrigatório trocar a senha provisória por uma senha pessoal.',
-                [
-                    'Ação'           => 'Criação da conta',
-                    'E-mail de acesso' => $email,
-                    'Realizado por'  => $eu['nome'],
-                    'Data e horário' => date('d/m/Y H:i'),
-                ]);
+                'Uma conta de acesso ao painel administrativo da Plataforma AutoriaSCS foi criada para você. Entre com a senha provisória abaixo — no primeiro acesso, será obrigatório trocá-la por uma senha pessoal.',
+                $dadosEmail);
             $_SESSION['flash_ok'] = 'Usuário criado com sucesso. Ele deverá trocar a senha no primeiro acesso.';
         } elseif ($acao === 'editar' && $id > 0) {
             $st = db()->prepare('SELECT * FROM admin_usuarios WHERE id = ?');
@@ -117,9 +123,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mudancas['Situação da conta'] = $ativo ? 'Reativada' : 'Desativada';
             }
             if ($senha !== '') {
-                $mudancas['Senha'] = $id === (int) $eu['id']
-                    ? 'Redefinida'
-                    : 'Redefinida (será obrigatório trocá-la no próximo login)';
+                if ($id !== (int) $eu['id'] && !empty(email_config()['enviar_senha_provisoria'])) {
+                    $mudancas['Senha provisória'] = $senha;
+                    $mudancas['Senha'] = 'Redefinida (será obrigatório trocá-la no próximo login)';
+                } else {
+                    $mudancas['Senha'] = 'Redefinida';
+                }
             }
             if ($mudancas) {
                 enviar_email_conta($email, $nome, 'Alteração na sua conta do painel',
