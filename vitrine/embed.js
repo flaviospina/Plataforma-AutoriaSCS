@@ -2,18 +2,19 @@
  * Vitrine AutoriaSCS - widget de incorporação (solução sem iframe).
  *
  * Como usar no Moodle:
- *   1) No conteúdo da página inicial, insira o contêiner COM um conteúdo
- *      temporário dentro (o editor TinyMCE remove divs vazias ao salvar!):
- *
- *      <div id="autoriascs-vitrine" class="autoriascs-vitrine">
- *        <p style="text-align:center;color:#8a92a6;">Carregando novidades...</p>
- *      </div>
+ *   1) No conteúdo da página inicial (ou no bloco do tema), digite apenas o
+ *      texto:  Carregando novidades...
+ *      (Opcionalmente dentro de <div id="autoriascs-vitrine"> — mas não é
+ *      necessário: alguns editores do Moodle removem id/class das divs, então
+ *      o widget também localiza o contêiner pelo próprio texto, que sobrevive
+ *      a qualquer editor.)
  *
  *   2) Em "Administração do site > Aparência > HTML adicional > Antes do fechamento do BODY", insira:
  *      <script src="https://SEU-DOMINIO/vitrine/embed.js" defer></script>
  *
- * O contêiner é localizado pelo id OU pela class — se o editor remover um
- * dos dois atributos, o widget continua funcionando.
+ * Ordem de busca do contêiner: id "autoriascs-vitrine" > class
+ * "autoriascs-vitrine" > elemento cujo texto seja "Carregando novidades..."
+ * ou "[vitrine-autoriascs]".
  *
  * O script busca o conteúdo em api.php (mesma pasta deste arquivo) e monta
  * o HTML diretamente na página — sem iframe, sem problema de altura,
@@ -206,9 +207,32 @@
     alvo.appendChild(raiz);
   }
 
-  function iniciar() {
-    // Localiza o contêiner pelo id ou, como reserva, pela class
+  // Textos que marcam o local da vitrine quando o editor do Moodle
+  // remove os atributos id/class da div (texto puro sempre sobrevive)
+  var MARCADORES = ['carregando novidades...', 'carregando novidades…', '[vitrine-autoriascs]'];
+
+  function encontrarAlvo() {
     var alvo = document.getElementById(ID_ALVO) || document.querySelector('.' + ID_ALVO);
+    if (alvo) return alvo;
+
+    // Procura o elemento mais interno cujo texto seja exatamente um dos marcadores
+    var candidatos = document.querySelectorAll('p, div, span, h1, h2, h3, h4, h5, td');
+    for (var i = 0; i < candidatos.length; i++) {
+      var elem = candidatos[i];
+      if (elem.childElementCount !== 0) continue;
+      var texto = (elem.textContent || '').trim().toLowerCase();
+      if (MARCADORES.indexOf(texto) === -1) continue;
+      // Substitui o marcador por um contêiner novo e limpo
+      var novo = document.createElement('div');
+      novo.id = ID_ALVO;
+      elem.parentNode.replaceChild(novo, elem);
+      return novo;
+    }
+    return null;
+  }
+
+  function iniciar() {
+    var alvo = encontrarAlvo();
     if (!alvo || !BASE) return;
 
     if (!document.getElementById('avx-estilos')) {
