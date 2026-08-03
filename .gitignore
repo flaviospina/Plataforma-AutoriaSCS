@@ -1,0 +1,8 @@
+# Configuração local com credenciais do banco — nunca versionar
+vitrine/config.php
+
+# Imagens enviadas pelo painel
+vitrine/uploads/*
+!vitrine/uploads/.htaccess
+
+node_modules/

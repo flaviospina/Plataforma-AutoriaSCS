@@ -1,0 +1,2 @@
+# Bloqueia acesso direto aos arquivos internos do painel
+Require all denied
