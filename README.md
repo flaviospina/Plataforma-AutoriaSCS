@@ -92,10 +92,15 @@ Vá em **Administração do site → Aparência → HTML adicional →
 "Antes do fechamento da tag BODY"** e insira:
 
 ```html
-<script src="https://SEU-DOMINIO/vitrine/embed.js" defer></script>
+<script src="https://SEU-DOMINIO/vitrine/embed.js?v=1" defer></script>
 ```
 
 Salve e visite a página inicial. Pronto: a vitrine aparece no lugar da `div`.
+
+> **Importante — cache do navegador:** sempre que substituir o `embed.js` no
+> servidor, incremente o número da versão na URL (`?v=2`, `?v=3`...). Sem
+> isso, navegadores e CDNs continuam servindo a cópia antiga do arquivo,
+> mesmo com o novo já no servidor.
 
 > Por que "HTML adicional"? Porque o editor de texto do Moodle **remove tags
 > `<script>`** do conteúdo (era isso que também atrapalhava o iframe em alguns
