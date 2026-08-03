@@ -2,9 +2,18 @@
  * Vitrine AutoriaSCS - widget de incorporação (solução sem iframe).
  *
  * Como usar no Moodle:
- *   1) No conteúdo da página inicial, insira apenas:  <div id="autoriascs-vitrine"></div>
+ *   1) No conteúdo da página inicial, insira o contêiner COM um conteúdo
+ *      temporário dentro (o editor TinyMCE remove divs vazias ao salvar!):
+ *
+ *      <div id="autoriascs-vitrine" class="autoriascs-vitrine">
+ *        <p style="text-align:center;color:#8a92a6;">Carregando novidades...</p>
+ *      </div>
+ *
  *   2) Em "Administração do site > Aparência > HTML adicional > Antes do fechamento do BODY", insira:
  *      <script src="https://SEU-DOMINIO/vitrine/embed.js" defer></script>
+ *
+ * O contêiner é localizado pelo id OU pela class — se o editor remover um
+ * dos dois atributos, o widget continua funcionando.
  *
  * O script busca o conteúdo em api.php (mesma pasta deste arquivo) e monta
  * o HTML diretamente na página — sem iframe, sem problema de altura,
@@ -198,7 +207,8 @@
   }
 
   function iniciar() {
-    var alvo = document.getElementById(ID_ALVO);
+    // Localiza o contêiner pelo id ou, como reserva, pela class
+    var alvo = document.getElementById(ID_ALVO) || document.querySelector('.' + ID_ALVO);
     if (!alvo || !BASE) return;
 
     if (!document.getElementById('avx-estilos')) {

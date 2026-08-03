@@ -19,7 +19,9 @@
 </head>
 <body>
 <div class="faixa-topo">Pré-visualização da vitrine — este é <strong>exatamente</strong> o conteúdo exibido na página inicial da plataforma.</div>
-<div id="autoriascs-vitrine"></div>
+<div id="autoriascs-vitrine" class="autoriascs-vitrine">
+  <p style="text-align:center;color:#8a92a6;">Carregando novidades...</p>
+</div>
 <script src="embed.js" defer></script>
 </body>
 </html>
