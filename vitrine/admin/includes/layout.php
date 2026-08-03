@@ -94,6 +94,7 @@ details.diff pre{background:#0f172a;color:#d7e3ff;padding:12px;border-radius:10p
   <a class="item <?= $menuAtivo === 'parceiros' ? 'ativo' : '' ?>" href="parceiros.php">🤝 Parceiros</a>
   <a class="item <?= $menuAtivo === 'cursos' ? 'ativo' : '' ?>" href="cursos.php">🎓 Cursos</a>
   <a class="item <?= $menuAtivo === 'logs' ? 'ativo' : '' ?>" href="logs.php">🕒 Logs de atividade</a>
+  <a class="item <?= $menuAtivo === 'usuarios' ? 'ativo' : '' ?>" href="usuarios.php">👥 Usuários</a>
   <a class="item <?= $menuAtivo === 'perfil' ? 'ativo' : '' ?>" href="perfil.php">👤 Meu perfil</a>
   <a class="item" href="../home.php" target="_blank" rel="noopener">👁️ Ver vitrine</a>
   <div class="rodape-lateral">
