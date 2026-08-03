@@ -17,14 +17,11 @@ function usuario_dados_log(array $origem): array
     ];
 }
 
-/** Valida a política de senha do painel. Devolve mensagem de erro ou null. */
-function validar_senha(string $senha, string $confirmar): ?string
+/** Valida a senha contra a política central + confirmação. Devolve mensagem de erro ou null. */
+function validar_senha_com_confirmacao(string $senha, string $confirmar, string $nome, string $email): ?string
 {
-    if (strlen($senha) < 10) {
-        return 'A senha deve ter pelo menos 10 caracteres.';
-    }
-    if (!preg_match('/[A-Za-z]/', $senha) || !preg_match('/\d/', $senha)) {
-        return 'A senha deve conter letras e números.';
+    if ($erro = validar_politica_senha($senha, $nome, $email)) {
+        return $erro;
     }
     if ($senha !== $confirmar) {
         return 'A confirmação não confere com a senha.';
@@ -56,16 +53,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($acao === 'novo') {
             $senha     = (string) ($_POST['senha'] ?? '');
             $confirmar = (string) ($_POST['confirmar_senha'] ?? '');
-            if ($erroSenha = validar_senha($senha, $confirmar)) {
+            if ($erroSenha = validar_senha_com_confirmacao($senha, $confirmar, $nome, $email)) {
                 throw new RuntimeException($erroSenha);
             }
 
-            $st = db()->prepare('INSERT INTO admin_usuarios (nome, email, senha_hash, ativo) VALUES (?,?,?,?)');
+            // Conta nova sempre nasce com senha provisória: troca obrigatória no 1º login
+            $st = db()->prepare('INSERT INTO admin_usuarios (nome, email, senha_hash, ativo, senha_provisoria) VALUES (?,?,?,?,1)');
             $st->execute([$nome, $email, password_hash($senha, PASSWORD_DEFAULT), $ativo]);
             $novoId = (int) db()->lastInsertId();
             registrar_log('inserir', 'usuario', $novoId, 'Usuário do painel criado: ' . $nome . ' (' . $email . ')',
                 null, ['nome' => $nome, 'email' => $email, 'ativo' => $ativo]);
-            $_SESSION['flash_ok'] = 'Usuário criado com sucesso.';
+
+            enviar_email_conta($email, $nome, 'Conta criada no painel AutoriaSCS',
+                'Uma conta de acesso ao painel administrativo da Plataforma AutoriaSCS foi criada para você. No primeiro acesso, será obrigatório trocar a senha provisória por uma senha pessoal.',
+                [
+                    'Ação'           => 'Criação da conta',
+                    'E-mail de acesso' => $email,
+                    'Realizado por'  => $eu['nome'],
+                    'Data e horário' => date('d/m/Y H:i'),
+                ]);
+            $_SESSION['flash_ok'] = 'Usuário criado com sucesso. Ele deverá trocar a senha no primeiro acesso.';
         } elseif ($acao === 'editar' && $id > 0) {
             $st = db()->prepare('SELECT * FROM admin_usuarios WHERE id = ?');
             $st->execute([$id]);
@@ -84,16 +91,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $senha = (string) ($_POST['senha'] ?? '');
             if ($senha !== '') {
                 $confirmar = (string) ($_POST['confirmar_senha'] ?? '');
-                if ($erroSenha = validar_senha($senha, $confirmar)) {
+                if ($erroSenha = validar_senha_com_confirmacao($senha, $confirmar, $nome, $email)) {
                     throw new RuntimeException($erroSenha);
                 }
-                db()->prepare('UPDATE admin_usuarios SET senha_hash = ? WHERE id = ?')
-                    ->execute([password_hash($senha, PASSWORD_DEFAULT), $id]);
+                // Senha redefinida por outro admin volta a ser provisória;
+                // redefinida por si mesmo, é definitiva
+                $provisoria = $id === (int) $eu['id'] ? 0 : 1;
+                db()->prepare('UPDATE admin_usuarios SET senha_hash = ?, senha_provisoria = ? WHERE id = ?')
+                    ->execute([password_hash($senha, PASSWORD_DEFAULT), $provisoria, $id]);
             }
 
             registrar_log('atualizar', 'usuario', $id,
                 'Usuário do painel atualizado: ' . $nome . ($senha !== '' ? ' (senha redefinida)' : ''),
                 usuario_dados_log($anterior), ['nome' => $nome, 'email' => $email, 'ativo' => $ativo]);
+
+            // Aviso por e-mail com apenas o que mudou
+            $mudancas = [];
+            if ($anterior['nome'] !== $nome) {
+                $mudancas['Nome'] = $anterior['nome'] . ' → ' . $nome;
+            }
+            if ($anterior['email'] !== $email) {
+                $mudancas['E-mail de acesso'] = $anterior['email'] . ' → ' . $email;
+            }
+            if ((int) $anterior['ativo'] !== $ativo) {
+                $mudancas['Situação da conta'] = $ativo ? 'Reativada' : 'Desativada';
+            }
+            if ($senha !== '') {
+                $mudancas['Senha'] = $id === (int) $eu['id']
+                    ? 'Redefinida'
+                    : 'Redefinida (será obrigatório trocá-la no próximo login)';
+            }
+            if ($mudancas) {
+                enviar_email_conta($email, $nome, 'Alteração na sua conta do painel',
+                    'Sua conta de acesso ao painel administrativo da Plataforma AutoriaSCS foi alterada. Confira abaixo o que mudou:',
+                    $mudancas + [
+                        'Realizado por'  => $eu['nome'],
+                        'Data e horário' => date('d/m/Y H:i'),
+                        'IP'             => ip_cliente(),
+                    ]);
+                // Se o e-mail de acesso mudou, avisa também no endereço antigo
+                if ($anterior['email'] !== $email) {
+                    enviar_email_conta($anterior['email'], $nome, 'Alteração na sua conta do painel',
+                        'O e-mail de acesso da sua conta no painel da Plataforma AutoriaSCS foi alterado. Se você não reconhece esta mudança, contate o administrador.',
+                        [
+                            'E-mail de acesso' => $anterior['email'] . ' → ' . $email,
+                            'Realizado por'    => $eu['nome'],
+                            'Data e horário'   => date('d/m/Y H:i'),
+                        ]);
+                }
+            }
 
             // Mantém os dados da sessão em dia se editou a si mesmo
             if ($id === (int) $eu['id']) {
@@ -120,6 +166,13 @@ if ($acao === 'excluir' && $id > 0 && hash_equals(csrf_token(), $_GET['csrf'] ??
             registrar_log('excluir', 'usuario', $id,
                 'Usuário do painel excluído: ' . $anterior['nome'] . ' (' . $anterior['email'] . ')',
                 usuario_dados_log($anterior), null);
+            enviar_email_conta($anterior['email'], $anterior['nome'], 'Conta removida do painel',
+                'Sua conta de acesso ao painel administrativo da Plataforma AutoriaSCS foi removida e você não poderá mais acessar o sistema.',
+                [
+                    'Ação'           => 'Exclusão da conta',
+                    'Realizado por'  => $eu['nome'],
+                    'Data e horário' => date('d/m/Y H:i'),
+                ]);
             $_SESSION['flash_ok'] = 'Usuário excluído.';
         }
     }
@@ -176,9 +229,14 @@ admin_cabecalho('Usuários', 'usuarios');
   <label for="u_email">E-mail (usado no login) *</label>
   <input type="email" id="u_email" name="email" required value="<?= e($editando['email'] ?? '') ?>">
 
-  <label for="u_senha"><?= $editando ? 'Nova senha (deixe em branco para não alterar)' : 'Senha *' ?></label>
+  <label for="u_senha"><?= $editando ? 'Nova senha (deixe em branco para não alterar)' : 'Senha provisória *' ?></label>
   <input type="password" id="u_senha" name="senha" <?= $editando ? '' : 'required' ?> minlength="10" autocomplete="new-password">
-  <div class="ajuda">Mínimo de 10 caracteres, contendo letras e números.</div>
+  <div class="ajuda">
+    Regras: <?= e(implode(' · ', politica_senha_regras())) ?>.<br>
+    <?= $editando
+        ? 'Se você redefinir a senha de outro usuário, ele será obrigado a trocá-la no próximo login.'
+        : 'O usuário receberá um aviso por e-mail e será obrigado a trocar esta senha no primeiro acesso.' ?>
+  </div>
 
   <label for="u_conf"><?= $editando ? 'Confirmar nova senha' : 'Confirmar senha *' ?></label>
   <input type="password" id="u_conf" name="confirmar_senha" <?= $editando ? '' : 'required' ?> minlength="10" autocomplete="new-password">

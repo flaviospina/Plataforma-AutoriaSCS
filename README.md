@@ -114,6 +114,23 @@ Qualquer alteração feita no painel admin aparece na página inicial em até
 
 ---
 
+## 2.1 Avisos por e-mail e primeiro acesso
+
+- **Toda ação em uma conta de usuário do painel** (criação, alteração de dados,
+  redefinição de senha, desativação/reativação e exclusão) dispara um **aviso
+  por e-mail** ao usuário, no modelo institucional do CECAPE, contendo apenas:
+  ação, dados alterados, quem executou, data/horário e IP. Configure remetente
+  e logos na seção `email` do `config.php`.
+- **Primeiro acesso**: contas criadas pelo administrador nascem com **senha
+  provisória** — no primeiro login o usuário é obrigado a definir a própria
+  senha antes de acessar qualquer página do painel. O mesmo vale quando um
+  administrador redefine a senha de outro usuário.
+- **Política de senha**: mínimo de 10 caracteres, com letra maiúscula,
+  minúscula, número e caractere especial; não pode conter o nome nem o e-mail
+  do usuário; deve ser diferente da senha anterior.
+- Instalações antigas: execute uma vez o script
+  `sql/atualizacao-senha-provisoria.sql` para criar a coluna nova.
+
 ## 3. Segurança implementada
 
 - Senhas com `password_hash()` (bcrypt) e rehash automático;

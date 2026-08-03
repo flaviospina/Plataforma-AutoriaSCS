@@ -14,6 +14,10 @@ if (!is_file($configPath)) {
 }
 $CONFIG = require $configPath;
 
+date_default_timezone_set('America/Sao_Paulo');
+
+require __DIR__ . '/email.php';
+
 /* ---------- Conexão PDO ---------- */
 function db(): PDO
 {
@@ -66,12 +70,71 @@ function usuario_logado(): ?array
     return $_SESSION['admin'] ?? null;
 }
 
-function exigir_login(): void
+function exigir_login(bool $permitirSenhaProvisoria = false): void
 {
     if (!usuario_logado()) {
         header('Location: login.php');
         exit;
     }
+    // Senha provisória: bloqueia todo o painel até o usuário definir a própria senha
+    if (!$permitirSenhaProvisoria && !empty($_SESSION['admin']['senha_provisoria'])) {
+        header('Location: trocar_senha.php');
+        exit;
+    }
+}
+
+/* ---------- Política de senha ---------- */
+function politica_senha_regras(): array
+{
+    return [
+        'Mínimo de 10 caracteres',
+        'Pelo menos 1 letra MAIÚSCULA',
+        'Pelo menos 1 letra minúscula',
+        'Pelo menos 1 número',
+        'Pelo menos 1 caractere especial (ex.: @ # $ % ! ? * -)',
+        'Não pode conter seu nome ou seu e-mail',
+    ];
+}
+
+/**
+ * Valida a senha contra a política de segurança.
+ * Devolve a mensagem do primeiro problema encontrado, ou null se estiver ok.
+ */
+function validar_politica_senha(string $senha, string $nome = '', string $email = ''): ?string
+{
+    if (mb_strlen($senha) < 10) {
+        return 'A senha deve ter pelo menos 10 caracteres.';
+    }
+    if (!preg_match('/[A-Z]/', $senha)) {
+        return 'A senha deve conter pelo menos uma letra maiúscula.';
+    }
+    if (!preg_match('/[a-z]/', $senha)) {
+        return 'A senha deve conter pelo menos uma letra minúscula.';
+    }
+    if (!preg_match('/\d/', $senha)) {
+        return 'A senha deve conter pelo menos um número.';
+    }
+    if (!preg_match('/[^A-Za-z0-9]/', $senha)) {
+        return 'A senha deve conter pelo menos um caractere especial (ex.: @ # $ % ! ? * -).';
+    }
+
+    $senhaMinuscula = mb_strtolower($senha);
+    $trechos = [];
+    foreach (preg_split('/\s+/', mb_strtolower(trim($nome))) ?: [] as $palavra) {
+        if (mb_strlen($palavra) >= 4) {
+            $trechos[] = $palavra;
+        }
+    }
+    $parteEmail = mb_strtolower(explode('@', $email)[0] ?? '');
+    if (mb_strlen($parteEmail) >= 4) {
+        $trechos[] = $parteEmail;
+    }
+    foreach ($trechos as $trecho) {
+        if (mb_strpos($senhaMinuscula, $trecho) !== false) {
+            return 'A senha não pode conter o seu nome ou o seu e-mail.';
+        }
+    }
+    return null;
 }
 
 /* ---------- CSRF ---------- */

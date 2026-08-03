@@ -36,6 +36,16 @@ return [
         'janela_minutos'  => 15,  // ...dentro desta janela de tempo (por IP + e-mail)
     ],
 
+    // Avisos por e-mail sobre ações nas contas dos usuários do painel
+    'email' => [
+        'ativar'          => true,
+        'remetente'       => 'nao-responda@cecapescs.com.br',
+        'nome_remetente'  => 'CECAPE - Plataforma AutoriaSCS',
+        // Logos exibidos no cabeçalho do e-mail (deixe '' para ocultar)
+        'logo_esquerda'   => 'https://cecapescs.com.br/logos/logo-seeduc.png',
+        'logo_direita'    => 'https://cecapescs.com.br/logos/logo-cecape.png',
+    ],
+
     // Upload de imagens
     'upload' => [
         'pasta'        => __DIR__ . '/uploads',

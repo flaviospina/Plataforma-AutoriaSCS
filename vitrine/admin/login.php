@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id'    => (int) $usuario['id'],
                 'nome'  => $usuario['nome'],
                 'email' => $usuario['email'],
+                'senha_provisoria' => (int) ($usuario['senha_provisoria'] ?? 0),
             ];
             unset($_SESSION['csrf']); // novo token para a sessão autenticada
 
@@ -45,7 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute([password_hash($senha, PASSWORD_DEFAULT), $usuario['id']]);
             }
 
-            header('Location: index.php');
+            // Senha provisória: obriga a troca antes de liberar o painel
+            header('Location: ' . (!empty($usuario['senha_provisoria']) ? 'trocar_senha.php' : 'index.php'));
             exit;
         }
 

@@ -17,16 +17,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$hashAtual || !password_verify($senhaAtual, $hashAtual)) {
         $_SESSION['flash_erro'] = 'A senha atual está incorreta.';
-    } elseif (strlen($novaSenha) < 10) {
-        $_SESSION['flash_erro'] = 'A nova senha deve ter pelo menos 10 caracteres.';
-    } elseif (!preg_match('/[A-Za-z]/', $novaSenha) || !preg_match('/\d/', $novaSenha)) {
-        $_SESSION['flash_erro'] = 'A nova senha deve conter letras e números.';
+    } elseif ($novaSenha === $senhaAtual) {
+        $_SESSION['flash_erro'] = 'A nova senha deve ser diferente da atual.';
+    } elseif ($erroPolitica = validar_politica_senha($novaSenha, $usuario['nome'], $usuario['email'])) {
+        $_SESSION['flash_erro'] = $erroPolitica;
     } elseif ($novaSenha !== $confirmar) {
         $_SESSION['flash_erro'] = 'A confirmação não confere com a nova senha.';
     } else {
-        db()->prepare('UPDATE admin_usuarios SET senha_hash = ? WHERE id = ?')
+        db()->prepare('UPDATE admin_usuarios SET senha_hash = ?, senha_provisoria = 0 WHERE id = ?')
             ->execute([password_hash($novaSenha, PASSWORD_DEFAULT), $usuario['id']]);
+        $_SESSION['admin']['senha_provisoria'] = 0;
         registrar_log('atualizar', 'usuario', $usuario['id'], 'Senha alterada pelo próprio usuário.');
+        enviar_email_conta($usuario['email'], $usuario['nome'], 'Senha alterada',
+            'A senha da sua conta no painel administrativo da Plataforma AutoriaSCS foi alterada.',
+            [
+                'Ação'           => 'Alteração de senha (pelo próprio usuário)',
+                'Data e horário' => date('d/m/Y H:i'),
+                'IP'             => ip_cliente(),
+            ]);
         $_SESSION['flash_ok'] = 'Senha alterada com sucesso.';
     }
     header('Location: perfil.php');
@@ -48,7 +56,8 @@ admin_cabecalho('Meu perfil', 'perfil');
   <h2 style="color:var(--azul);font-size:18px;margin-bottom:8px">Alterar senha</h2>
   <label for="senha_atual">Senha atual</label>
   <input type="password" id="senha_atual" name="senha_atual" required autocomplete="current-password">
-  <label for="nova_senha">Nova senha (mínimo 10 caracteres, com letras e números)</label>
+  <label for="nova_senha">Nova senha</label>
+  <div class="ajuda" style="margin:0 0 6px">Regras: <?= e(implode(' · ', politica_senha_regras())) ?>.</div>
   <input type="password" id="nova_senha" name="nova_senha" required minlength="10" autocomplete="new-password">
   <label for="confirmar_senha">Confirmar nova senha</label>
   <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="10" autocomplete="new-password">

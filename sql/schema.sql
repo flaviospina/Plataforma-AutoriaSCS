@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS admin_usuarios (
   email         VARCHAR(190)     NOT NULL,
   senha_hash    VARCHAR(255)     NOT NULL,
   ativo         TINYINT(1)       NOT NULL DEFAULT 1,
+  senha_provisoria TINYINT(1)    NOT NULL DEFAULT 0 COMMENT 'Se 1, o usuário é obrigado a trocar a senha no próximo login',
   ultimo_login  DATETIME         NULL,
   criado_em     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -29,10 +30,10 @@ CREATE TABLE IF NOT EXISTS admin_usuarios (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Usuário inicial: prof.flavio.spina@gmail.com / senha: Cecape@2026
--- IMPORTANTE: troque a senha no primeiro acesso (menu "Meu perfil").
-INSERT INTO admin_usuarios (nome, email, senha_hash) VALUES
+-- A senha é provisória: o sistema exigirá a troca no primeiro login.
+INSERT INTO admin_usuarios (nome, email, senha_hash, senha_provisoria) VALUES
   ('Flávio Spina', 'prof.flavio.spina@gmail.com',
-   '$2y$12$n0IfUHGhK1rshx9SJzQy0eb1QI8mSXzSM2YQrKr6UDQSFityWp/OO');
+   '$2y$12$n0IfUHGhK1rshx9SJzQy0eb1QI8mSXzSM2YQrKr6UDQSFityWp/OO', 1);
 
 -- ------------------------------------------------------------
 -- Parceiros (1ª seção da vitrine)
