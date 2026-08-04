@@ -1,8 +1,21 @@
-# Segurança: impede a execução de scripts na pasta de uploads
+# Segurança: impede a execução de scripts na pasta de uploads.
+# (Diretivas envolvidas em IfModule para compatibilidade com qualquer
+# hospedagem — php_flag fora de mod_php causa erro 500 em LiteSpeed/suPHP.)
+
 <FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|py|cgi|sh)$">
   Require all denied
 </FilesMatch>
-Options -ExecCGI -Indexes
+
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .phar
-php_flag engine off
+
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>
+
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
