@@ -34,6 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($dados['link_url'] === '') {
             throw new RuntimeException('O link de inscrição é obrigatório.');
         }
+        foreach (['imagem_url' => 'URL da imagem', 'link_url' => 'link de inscrição'] as $campo => $rotulo) {
+            if ($dados[$campo] !== '' && substr_count($dados[$campo], 'http') > 1) {
+                throw new RuntimeException('O campo "' . $rotulo . '" contém dois endereços colados. Deixe apenas um.');
+            }
+        }
         if ($urlUpload = salvar_imagem($_FILES['imagem_arquivo'] ?? [])) {
             $dados['imagem_url'] = $urlUpload;
         }
