@@ -63,9 +63,9 @@ admin_cabecalho('Configurações', 'inicio');
 <?php mostrar_flash(); ?>
 
 <div class="cartao" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;text-align:center">
-  <div><div style="font-size:34px;font-weight:800;color:var(--azul)"><?= $totais['parceiros'] ?></div><div class="ajuda">Parceiros ativos</div></div>
-  <div><div style="font-size:34px;font-weight:800;color:var(--teal)"><?= $totais['cursos'] ?></div><div class="ajuda">Cursos ativos</div></div>
-  <div><div style="font-size:34px;font-weight:800;color:#3f6212"><?= $totais['logs'] ?></div><div class="ajuda">Registros de log</div></div>
+  <div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;color:var(--orange)"><?= $totais['parceiros'] ?></div><div class="ajuda">Parceiros ativos</div></div>
+  <div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;color:var(--cyan)"><?= $totais['cursos'] ?></div><div class="ajuda">Cursos ativos</div></div>
+  <div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;color:var(--green)"><?= $totais['logs'] ?></div><div class="ajuda">Registros de log</div></div>
 </div>
 
 <form class="cartao" method="post">

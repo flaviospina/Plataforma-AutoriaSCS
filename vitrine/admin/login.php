@@ -65,24 +65,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta name="robots" content="noindex, nofollow">
 <title>Acesso restrito · Admin AutoriaSCS</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#071f8f 0%,#0d37d0 55%,#2898a4 130%);padding:20px}
-.caixa{background:#fff;border-radius:22px;box-shadow:0 24px 60px rgba(4,15,70,.35);width:100%;max-width:420px;padding:38px 34px}
-.caixa h1{color:#071f8f;font-size:23px;margin-bottom:4px}
-.caixa p.sub{color:#5b6475;font-size:14px;margin-bottom:24px}
-label{display:block;font-weight:600;font-size:13.5px;margin:14px 0 6px;color:#071f8f}
-input{width:100%;padding:12px 14px;border:1px solid #e3e8f2;border-radius:11px;font-size:15px}
-input:focus{outline:2px solid #2898a4;border-color:#2898a4}
-button{margin-top:22px;width:100%;border:0;cursor:pointer;background:#9dff00;color:#08215d;font-weight:800;font-size:16px;
-  padding:14px;border-radius:999px;box-shadow:0 10px 24px rgba(157,255,0,.35);transition:transform .12s}
-button:hover{transform:translateY(-2px)}
-.erro{background:#fde8e8;color:#b91c1c;border:1px solid #f5c2c2;padding:12px 15px;border-radius:11px;font-size:14px;margin-bottom:6px}
-.rodape{margin-top:22px;text-align:center;font-size:12.5px;color:#8a92a6}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;
+  background:#0b1628;background-image:linear-gradient(160deg,#0b1628 0%,#0a1f3a 50%,#091628 100%);color:#fff;
+  -webkit-font-smoothing:antialiased}
+.centro{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.caixa{background:#0f2044;border:1px solid rgba(30,80,160,.55);border-radius:12px;
+  box-shadow:0 10px 48px rgba(0,0,0,.65);width:100%;max-width:460px;padding:40px 44px}
+.logos{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:26px}
+.logos img{height:38px;width:auto;max-width:29%;object-fit:contain;filter:brightness(1.05)}
+.logos .div{width:1px;height:30px;background:rgba(255,255,255,.15);flex-shrink:0}
+.caixa h1{font-size:22px;font-weight:800;text-align:center;color:#fff;margin-bottom:6px}
+.caixa p.sub{text-align:center;font-size:13px;color:#8baac8;margin-bottom:26px;line-height:1.7}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8baac8;margin:14px 0 7px}
+input{width:100%;padding:12px 14px;background:#0b1e3d;border:1px solid rgba(30,80,160,.35);border-radius:8px;
+  font-family:inherit;font-size:14px;color:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+input::placeholder{color:#3d6080}
+button{margin-top:22px;width:100%;border:0;cursor:pointer;background:linear-gradient(135deg,#1d4ed8 0%,#06b6d4 100%);
+  color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:8px;transition:all .18s}
+button:hover{transform:translateY(-2px);box-shadow:0 0 28px rgba(34,211,238,.18)}
+.erro{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.35);padding:12px 15px;
+  border-radius:8px;font-size:13.5px;margin-bottom:6px}
+.rodape{margin-top:22px;text-align:center;font-size:12.5px;color:#3d6080;line-height:1.6}
+.site-footer{background:#0d9488;padding:16px 24px;text-align:center;font-size:12px;color:rgba(255,255,255,.75);
+  text-transform:uppercase;letter-spacing:.04em}
+@media(max-width:520px){.caixa{padding:28px 22px}.logos img{height:28px}.logos{gap:10px}}
 </style>
 </head>
 <body>
+<div class="centro">
 <form class="caixa" method="post" autocomplete="off">
+  <div class="logos">
+    <img src="https://cecapescs.com.br/logos/logo-seeduc.png" alt="SEEDUC">
+    <div class="div"></div>
+    <img src="https://cecapescs.com.br/logos/logo-autoriascs.png" alt="AutoriaSCS">
+    <div class="div"></div>
+    <img src="https://cecapescs.com.br/logos/logo-cecape-new.png" alt="CECAPE">
+  </div>
   <h1>🔒 Acesso restrito</h1>
   <p class="sub">Painel da vitrine · Plataforma AutoriaSCS / CECAPE</p>
   <?php if ($erro): ?><div class="erro"><?= e($erro) ?></div><?php endif; ?>
@@ -94,5 +114,7 @@ button:hover{transform:translateY(-2px)}
   <button type="submit">Entrar no painel</button>
   <div class="rodape">Acesso monitorado — todas as ações são registradas em log.</div>
 </form>
+</div>
+<footer class="site-footer">CECAPE - Centro de Capacitação de Profissionais da Educação · Secretaria Municipal de Educação de São Caetano do Sul</footer>
 </body>
 </html>

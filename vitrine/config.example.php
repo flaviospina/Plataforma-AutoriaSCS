@@ -44,7 +44,7 @@ return [
         // Logos exibidos no cabeçalho do e-mail (deixe '' para ocultar)
         'logo_esquerda'   => 'https://cecapescs.com.br/logos/logo-seeduc.png',
         'logo_centro'     => 'https://cecapescs.com.br/logos/logo-autoriascs.png',
-        'logo_direita'    => 'https://cecapescs.com.br/logos/logo-cecape.png',
+        'logo_direita'    => 'https://cecapescs.com.br/logos/logo-cecape-new.png',
         // Inclui a senha provisória no e-mail de criação/redefinição de conta
         'enviar_senha_provisoria' => true,
     ],

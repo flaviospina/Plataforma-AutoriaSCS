@@ -134,11 +134,11 @@ admin_cabecalho('Logs de atividade', 'logs');
       <details class="diff">
         <summary>Ver detalhes</summary>
         <?php if ($log['dados_anteriores']): ?>
-        <strong style="font-size:12px;color:#b91c1c">Antes:</strong>
+        <strong style="font-size:12px;color:#f87171">Antes:</strong>
         <pre><?= formatar_json($log['dados_anteriores']) ?></pre>
         <?php endif; ?>
         <?php if ($log['dados_novos']): ?>
-        <strong style="font-size:12px;color:#166534">Depois:</strong>
+        <strong style="font-size:12px;color:#34d399">Depois:</strong>
         <pre><?= formatar_json($log['dados_novos']) ?></pre>
         <?php endif; ?>
       </details>
