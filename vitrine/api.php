@@ -46,9 +46,13 @@ try {
         $config[$linha['chave']] = $linha['valor'];
     }
 
+    // Na página inicial entram apenas parceiros dentro do prazo de exibição;
+    // os demais continuam visíveis na página de parceiros (parceiros.php)
     $parceiros = $pdo->query(
         'SELECT nome, titulo, descricao, imagem_url, link_url, texto_botao, destaques, observacao
-           FROM parceiros WHERE ativo = 1 ORDER BY ordem, nome'
+           FROM parceiros
+          WHERE ativo = 1 AND (expira_em IS NULL OR expira_em > NOW())
+          ORDER BY ordem, nome'
     )->fetchAll();
 
     foreach ($parceiros as &$p) {

@@ -68,9 +68,13 @@
     ".avx .avx-botao-verde{display:inline-block;background:#9dff00;color:#08215d;font-weight:800;padding:14px 24px;border-radius:999px;box-shadow:0 12px 28px rgba(157,255,0,.28);white-space:nowrap;transition:transform .18s ease}\n" +
     ".avx .avx-botao-verde:hover{transform:translateY(-2px)}\n" +
     ".avx .avx-obs{margin:16px 0 0;color:#5b6475;font-size:13.5px;line-height:1.6}\n" +
+    ".avx .avx-todos-parceiros{text-align:center;margin:6px 0 34px}\n" +
+    ".avx .avx-todos-parceiros a{display:inline-block;color:#2898a4;border:2px solid #2898a4;font-weight:700;font-size:14.5px;padding:11px 26px;border-radius:999px;transition:all .18s ease}\n" +
+    ".avx .avx-todos-parceiros a:hover{background:#2898a4;color:#fff;transform:translateY(-2px)}\n" +
     /* ---- cursos ---- */
-    ".avx .avx-grade-cursos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px}\n" +
-    ".avx .avx-curso{position:relative;background:#fff;border:1px solid rgba(7,31,143,.08);border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(8,28,105,.10);display:flex;flex-direction:column;transition:transform .22s ease,box-shadow .22s ease}\n" +
+    // flex + justify-content:center: linhas incompletas de cards ficam centralizadas na página
+    ".avx .avx-grade-cursos{display:flex;flex-wrap:wrap;justify-content:center;gap:26px}\n" +
+    ".avx .avx-curso{position:relative;flex:0 1 340px;width:340px;max-width:100%;background:#fff;border:1px solid rgba(7,31,143,.08);border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(8,28,105,.10);display:flex;flex-direction:column;transition:transform .22s ease,box-shadow .22s ease}\n" +
     ".avx .avx-curso:hover{transform:translateY(-6px);box-shadow:0 22px 48px rgba(8,28,105,.18)}\n" +
     ".avx .avx-curso-media{position:relative;height:190px;background:linear-gradient(135deg,#071f8f 0%,#2898a4 100%);overflow:hidden}\n" +
     ".avx .avx-curso-capa{width:100%;height:100%;object-fit:cover}\n" +
@@ -194,6 +198,15 @@
     if (cfg.exibir_parceiros && dados.parceiros && dados.parceiros.length) {
       raiz.appendChild(cabecalhoSecao(cfg.titulo_parceiros || 'Nossos parceiros', cfg.subtitulo_parceiros));
       dados.parceiros.forEach(function (p, i) { raiz.appendChild(montarParceiro(p, i)); });
+
+      // Link para a página com todos os parceiros (inclusive os já encerrados)
+      var todos = el('div', 'avx-todos-parceiros avx-anim');
+      var linkTodos = el('a', null, 'Ver todos os parceiros →');
+      linkTodos.href = BASE + '/parceiros.php';
+      linkTodos.target = '_blank';
+      linkTodos.rel = 'noopener';
+      todos.appendChild(linkTodos);
+      raiz.appendChild(todos);
     }
 
     if (cfg.exibir_cursos && dados.cursos && dados.cursos.length) {

@@ -50,10 +50,14 @@ CREATE TABLE IF NOT EXISTS parceiros (
   observacao     VARCHAR(500)    NULL COMMENT 'Texto pequeno exibido no rodapé do card',
   ordem          INT             NOT NULL DEFAULT 0,
   ativo          TINYINT(1)      NOT NULL DEFAULT 1,
+  exibir_valor   INT             NULL COMMENT 'Quantidade do tempo de exibição na página inicial (ex.: 30)',
+  exibir_unidade ENUM('dias','meses','anos') NULL COMMENT 'Unidade do tempo de exibição',
+  expira_em      DATETIME        NULL COMMENT 'Após esta data o parceiro sai da página inicial (continua na página de parceiros)',
   criado_em      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   atualizado_em  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_parceiros_ordem (ativo, ordem)
+  KEY idx_parceiros_ordem (ativo, ordem),
+  KEY idx_parceiros_expira (ativo, expira_em)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------

@@ -131,6 +131,19 @@ Qualquer alteração feita no painel admin aparece na página inicial em até
 - Instalações antigas: execute uma vez o script
   `sql/atualizacao-senha-provisoria.sql` para criar a coluna nova.
 
+## 2.2 Página de parceiros e prazo de exibição
+
+- **`vitrine/parceiros.php`** é a página pública com **todos** os parceiros
+  ativos, em ordem cronológica de inserção, com selos "Parceiro desde",
+  "Em destaque na página inicial" ou "Divulgação encerrada". A vitrine da
+  página inicial exibe um botão "Ver todos os parceiros" que leva até ela.
+- Cada parceiro pode ter um **prazo de exibição na página inicial** (número +
+  dias/meses/anos), definido no painel. O prazo conta a partir do salvamento;
+  ao vencer, o parceiro sai da página inicial automaticamente e permanece
+  somente na página de parceiros. Sem prazo definido, fica sempre no ar.
+- Os cards de cursos com linhas incompletas ficam **centralizados** na página.
+- Instalações antigas: execute uma vez `sql/atualizacao-expiracao-parceiros.sql`.
+
 ## 3. Segurança implementada
 
 - Senhas com `password_hash()` (bcrypt) e rehash automático;

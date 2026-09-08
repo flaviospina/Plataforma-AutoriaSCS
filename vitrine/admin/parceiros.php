@@ -9,18 +9,39 @@ $id   = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 /** Campos persistidos de um parceiro (para logs de antes/depois). */
 function parceiro_dados(array $origem): array
 {
+    $valor   = ($origem['exibir_valor'] ?? '') !== '' && $origem['exibir_valor'] !== null
+        ? max(1, (int) $origem['exibir_valor']) : null;
+    $unidade = in_array($origem['exibir_unidade'] ?? '', ['dias', 'meses', 'anos'], true)
+        ? $origem['exibir_unidade'] : null;
+    if ($valor === null || $unidade === null) {
+        $valor = $unidade = null; // prazo só vale com quantidade E unidade
+    }
     return [
-        'nome'        => trim($origem['nome'] ?? ''),
-        'titulo'      => trim($origem['titulo'] ?? ''),
-        'descricao'   => trim($origem['descricao'] ?? ''),
-        'imagem_url'  => trim($origem['imagem_url'] ?? ''),
-        'link_url'    => trim($origem['link_url'] ?? ''),
-        'texto_botao' => trim($origem['texto_botao'] ?? '') ?: 'Acessar plataforma',
-        'destaques'   => trim($origem['destaques'] ?? ''),
-        'observacao'  => trim($origem['observacao'] ?? ''),
-        'ordem'       => (int) ($origem['ordem'] ?? 0),
-        'ativo'       => (int) ($origem['ativo'] ?? 1) === 1 ? 1 : 0,
+        'nome'           => trim($origem['nome'] ?? ''),
+        'titulo'         => trim($origem['titulo'] ?? ''),
+        'descricao'      => trim($origem['descricao'] ?? ''),
+        'imagem_url'     => trim($origem['imagem_url'] ?? ''),
+        'link_url'       => trim($origem['link_url'] ?? ''),
+        'texto_botao'    => trim($origem['texto_botao'] ?? '') ?: 'Acessar plataforma',
+        'destaques'      => trim($origem['destaques'] ?? ''),
+        'observacao'     => trim($origem['observacao'] ?? ''),
+        'ordem'          => (int) ($origem['ordem'] ?? 0),
+        'ativo'          => (int) ($origem['ativo'] ?? 1) === 1 ? 1 : 0,
+        'exibir_valor'   => $valor,
+        'exibir_unidade' => $unidade,
     ];
+}
+
+/** Calcula a data em que o parceiro sai da página inicial, a partir de agora. */
+function calcular_expiracao(?int $valor, ?string $unidade): ?string
+{
+    if (!$valor || !$unidade) {
+        return null;
+    }
+    $mapa = ['dias' => 'D', 'meses' => 'M', 'anos' => 'Y'];
+    $data = new DateTime();
+    $data->add(new DateInterval('P' . $valor . $mapa[$unidade]));
+    return $data->format('Y-m-d H:i:s');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,9 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($acao === 'novo') {
+            $dados['expira_em'] = calcular_expiracao($dados['exibir_valor'], $dados['exibir_unidade']);
             $st = db()->prepare(
-                'INSERT INTO parceiros (nome, titulo, descricao, imagem_url, link_url, texto_botao, destaques, observacao, ordem, ativo)
-                 VALUES (?,?,?,?,?,?,?,?,?,?)'
+                'INSERT INTO parceiros (nome, titulo, descricao, imagem_url, link_url, texto_botao, destaques, observacao, ordem, ativo, exibir_valor, exibir_unidade, expira_em)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
             $st->execute(array_values($dados));
             $novoId = (int) db()->lastInsertId();
@@ -58,12 +80,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$anterior) {
                 throw new RuntimeException('Parceiro não encontrado.');
             }
+            // Só recalcula o prazo (a partir de agora) se ele foi alterado no formulário
+            $dados['expira_em'] = $anterior['expira_em'];
+            if ((int) ($anterior['exibir_valor'] ?? 0) !== (int) ($dados['exibir_valor'] ?? 0)
+                || ($anterior['exibir_unidade'] ?? null) !== $dados['exibir_unidade']) {
+                $dados['expira_em'] = calcular_expiracao($dados['exibir_valor'], $dados['exibir_unidade']);
+            }
             $st = db()->prepare(
-                'UPDATE parceiros SET nome=?, titulo=?, descricao=?, imagem_url=?, link_url=?, texto_botao=?, destaques=?, observacao=?, ordem=?, ativo=?
+                'UPDATE parceiros SET nome=?, titulo=?, descricao=?, imagem_url=?, link_url=?, texto_botao=?, destaques=?, observacao=?, ordem=?, ativo=?, exibir_valor=?, exibir_unidade=?, expira_em=?
                   WHERE id = ?'
             );
             $st->execute([...array_values($dados), $id]);
-            registrar_log('atualizar', 'parceiro', $id, 'Parceiro atualizado: ' . $dados['nome'], parceiro_dados($anterior), $dados);
+            $logAnterior = parceiro_dados($anterior);
+            $logAnterior['expira_em'] = $anterior['expira_em'];
+            registrar_log('atualizar', 'parceiro', $id, 'Parceiro atualizado: ' . $dados['nome'], $logAnterior, $dados);
             $_SESSION['flash_ok'] = 'Parceiro atualizado com sucesso.';
         }
     } catch (RuntimeException $ex) {
@@ -102,13 +132,22 @@ admin_cabecalho('Parceiros', 'parceiros');
 
 <div class="cartao" style="overflow-x:auto">
 <table>
-  <tr><th>Imagem</th><th>Nome</th><th>Ordem</th><th>Situação</th><th>Atualizado em</th><th style="width:180px">Ações</th></tr>
+  <tr><th>Imagem</th><th>Nome</th><th>Ordem</th><th>Situação</th><th>Página inicial</th><th>Atualizado em</th><th style="width:180px">Ações</th></tr>
   <?php foreach (db()->query('SELECT * FROM parceiros ORDER BY ordem, nome') as $p): ?>
   <tr>
     <td><?php if ($p['imagem_url']): ?><img class="miniatura" src="<?= e($p['imagem_url']) ?>" alt=""><?php endif; ?></td>
     <td><strong><?= e($p['nome']) ?></strong></td>
     <td><?= (int) $p['ordem'] ?></td>
     <td><span class="selo <?= $p['ativo'] ? 'selo-ativo' : 'selo-inativo' ?>"><?= $p['ativo'] ? 'Ativo' : 'Inativo' ?></span></td>
+    <td>
+      <?php if (!$p['ativo']): ?>—
+      <?php elseif ($p['expira_em'] === null): ?><span class="selo selo-ativo">Sem prazo</span>
+      <?php elseif (strtotime($p['expira_em']) <= time()): ?>
+        <span class="selo selo-acao-login_falha">Encerrou em <?= e(date('d/m/Y', strtotime($p['expira_em']))) ?></span>
+      <?php else: ?>
+        <span class="selo selo-acao-atualizar">No ar até <?= e(date('d/m/Y', strtotime($p['expira_em']))) ?></span>
+      <?php endif; ?>
+    </td>
     <td><?= e(date('d/m/Y H:i', strtotime($p['atualizado_em']))) ?></td>
     <td>
       <a class="botao botao-claro botao-mini" href="parceiros.php?acao=editar&id=<?= $p['id'] ?>#formulario">Editar</a>
@@ -168,6 +207,32 @@ admin_cabecalho('Parceiros', 'parceiros');
         <input type="checkbox" name="ativo" <?= ($editando['ativo'] ?? 1) ? 'checked' : '' ?>> Parceiro ativo (visível na vitrine)
       </label>
     </div>
+  </div>
+
+  <div class="linha-campos">
+    <div>
+      <label for="p_exibir_valor">Tempo de exibição na página inicial</label>
+      <input type="number" id="p_exibir_valor" name="exibir_valor" min="1"
+             value="<?= e((string) ($editando['exibir_valor'] ?? '')) ?>" placeholder="Ex.: 30">
+    </div>
+    <div>
+      <label for="p_exibir_unidade">Unidade</label>
+      <select id="p_exibir_unidade" name="exibir_unidade">
+        <option value="">— Sem prazo (sempre no ar) —</option>
+        <?php foreach (['dias' => 'Dias', 'meses' => 'Meses', 'anos' => 'Anos'] as $u => $rotuloU): ?>
+        <option value="<?= $u ?>" <?= ($editando['exibir_unidade'] ?? '') === $u ? 'selected' : '' ?>><?= $rotuloU ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+  </div>
+  <div class="ajuda">
+    O prazo conta <strong>a partir de agora</strong> (do salvamento). Ao vencer, o parceiro sai da página inicial
+    automaticamente, mas continua na <a href="../parceiros.php" target="_blank" rel="noopener" style="color:var(--cyan)">página de parceiros</a>.
+    Deixe em branco para exibir sem prazo.
+    <?php if (!empty($editando['expira_em'])): ?>
+      <br>Prazo atual: <strong>no ar até <?= e(date('d/m/Y H:i', strtotime($editando['expira_em']))) ?></strong>
+      (alterar o tempo acima reinicia a contagem).
+    <?php endif; ?>
   </div>
 
   <div style="margin-top:22px">
