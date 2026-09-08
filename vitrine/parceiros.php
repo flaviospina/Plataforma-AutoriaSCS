@@ -23,20 +23,23 @@ date_default_timezone_set('America/Sao_Paulo');
  * ------------------------------------------------------------------ */
 $PLATAFORMA_URL = 'https://eadcecape.com.br/ava';
 $MENU = [
-    ['rotulo' => 'Sobre',                  'url' => $PLATAFORMA_URL . '/#sobre'],
-    ['rotulo' => 'Galeria de imagens',     'url' => $PLATAFORMA_URL . '/#galeria'],
-    ['rotulo' => 'Cursos',                 'url' => $PLATAFORMA_URL . '/#cursos'],
-    ['rotulo' => 'Games 🎮',               'url' => $PLATAFORMA_URL . '/#games'],
-    ['rotulo' => 'Podcast',                'url' => $PLATAFORMA_URL . '/#podcast'],
-    ['rotulo' => 'Depoimentos',            'url' => $PLATAFORMA_URL . '/#depoimentos'],
-    ['rotulo' => 'Fale com o CECAPE',      'url' => $PLATAFORMA_URL . '/#contato'],
+    ['rotulo' => 'Sobre',                  'url' => $PLATAFORMA_URL . '/#block01'],
+    ['rotulo' => 'Galeria de imagens',     'url' => $PLATAFORMA_URL . '/#block04'],
+    ['rotulo' => 'Cursos',                 'url' => $PLATAFORMA_URL . '/#block07'],
+    ['rotulo' => 'Games 🎮',               'url' => $PLATAFORMA_URL . '/mod/games/view.php?id=1542'],
+    ['rotulo' => 'Podcast',                'url' => 'https://cecapescs.com.br/ferramenta_moodle/podcast.php'],
+    ['rotulo' => 'Depoimentos',            'url' => $PLATAFORMA_URL . '/#block10'],
+    ['rotulo' => 'Fale com o CECAPE',      'url' => $PLATAFORMA_URL . '/#block18'],
     ['rotulo' => 'Meus cursos',            'url' => $PLATAFORMA_URL . '/my/courses.php'],
-    ['rotulo' => 'Catálogo de Cursos',     'url' => $PLATAFORMA_URL . '/course/index.php'],
-    ['rotulo' => 'Biblioteca de Recursos', 'url' => $PLATAFORMA_URL . '/'],
+    ['rotulo' => 'Catálogo de Cursos',     'url' => $PLATAFORMA_URL . '/course/index.php?categoryid=1&browse=courses&perpage=20&page=0'],
+    ['rotulo' => 'Biblioteca de Recursos', 'url' => $PLATAFORMA_URL . '/course/index.php?categoryid=8'],
     ['rotulo' => 'Nossos Parceiros',       'url' => 'parceiros.php', 'ativo' => true],
 ];
-$LOGO_MENU  = 'https://cecapescs.com.br/logos/logo-cecape-new.png';
-$LOGIN_URL  = $PLATAFORMA_URL . '/login/index.php';
+// Logo oficial da plataforma (o mesmo do cabeçalho do Moodle);
+// se sair do ar, o onerror troca pelo logo hospedado no cecapescs
+$LOGO_MENU          = $PLATAFORMA_URL . '/pluginfile.php/1/core_admin/logo/0x200/1788873887/Logo-oficial-ambiente-cecape-2.png';
+$LOGO_MENU_RESERVA  = 'https://cecapescs.com.br/logos/logo-cecape-new.png';
+$LOGIN_URL          = $PLATAFORMA_URL . '/login/index.php';
 
 function ep(?string $texto): string
 {
@@ -158,7 +161,8 @@ a{text-decoration:none}
 <header class="navbar">
   <div class="navbar-inner">
     <a class="navbar-logo" href="<?= ep($PLATAFORMA_URL) ?>/">
-      <img src="<?= ep($LOGO_MENU) ?>" alt="CECAPE">
+      <img src="<?= ep($LOGO_MENU) ?>" alt="CECAPE"
+           onerror="this.onerror=null;this.src='<?= ep($LOGO_MENU_RESERVA) ?>'">
     </a>
     <button class="navbar-burger" type="button" aria-label="Abrir menu"
             onclick="document.getElementById('menuLinks').classList.toggle('aberto')">☰</button>
