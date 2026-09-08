@@ -15,6 +15,29 @@ if (!is_file($configPath)) {
 $CONFIG = require $configPath;
 date_default_timezone_set('America/Sao_Paulo');
 
+/* ------------------------------------------------------------------
+ * MENU DA PLATAFORMA (réplica do cabeçalho do tema Almondb)
+ * Ajuste as URLs abaixo copiando cada link do menu da página inicial
+ * da plataforma (botão direito no item → "Copiar link").
+ * O item marcado com 'ativo' => true fica destacado em âmbar.
+ * ------------------------------------------------------------------ */
+$PLATAFORMA_URL = 'https://eadcecape.com.br/ava';
+$MENU = [
+    ['rotulo' => 'Sobre',                  'url' => $PLATAFORMA_URL . '/#sobre'],
+    ['rotulo' => 'Galeria de imagens',     'url' => $PLATAFORMA_URL . '/#galeria'],
+    ['rotulo' => 'Cursos',                 'url' => $PLATAFORMA_URL . '/#cursos'],
+    ['rotulo' => 'Games 🎮',               'url' => $PLATAFORMA_URL . '/#games'],
+    ['rotulo' => 'Podcast',                'url' => $PLATAFORMA_URL . '/#podcast'],
+    ['rotulo' => 'Depoimentos',            'url' => $PLATAFORMA_URL . '/#depoimentos'],
+    ['rotulo' => 'Fale com o CECAPE',      'url' => $PLATAFORMA_URL . '/#contato'],
+    ['rotulo' => 'Meus cursos',            'url' => $PLATAFORMA_URL . '/my/courses.php'],
+    ['rotulo' => 'Catálogo de Cursos',     'url' => $PLATAFORMA_URL . '/course/index.php'],
+    ['rotulo' => 'Biblioteca de Recursos', 'url' => $PLATAFORMA_URL . '/'],
+    ['rotulo' => 'Nossos Parceiros',       'url' => 'parceiros.php', 'ativo' => true],
+];
+$LOGO_MENU  = 'https://cecapescs.com.br/logos/logo-cecape-new.png';
+$LOGIN_URL  = $PLATAFORMA_URL . '/login/index.php';
+
 function ep(?string $texto): string
 {
     return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
@@ -60,11 +83,33 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:
   min-height:100vh;display:flex;flex-direction:column}
 img{max-width:100%}
 a{text-decoration:none}
-/* topo */
-.topo{background:#fff;border-bottom:4px solid #2898a4;padding:18px 24px}
-.topo-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
-.topo img{height:44px;width:auto;object-fit:contain}
-.topo .div{width:1px;height:34px;background:rgba(0,0,0,.12)}
+/* ── Barra de navegação (réplica do cabeçalho da plataforma / tema Almondb) ── */
+.navbar{background:#fff;position:sticky;top:0;z-index:300;box-shadow:0 1px 2px rgba(0,0,0,.08);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.navbar-inner{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:26px;
+  padding:0 28px;min-height:64px}
+.navbar-logo{display:flex;align-items:center;flex-shrink:0}
+.navbar-logo img{height:42px;width:auto;object-fit:contain;display:block}
+.navbar-links{display:flex;align-items:center;gap:26px;flex:1;flex-wrap:nowrap;overflow-x:auto;
+  scrollbar-width:none}
+.navbar-links::-webkit-scrollbar{display:none}
+.navbar-links a{color:#1d2125;font-size:16.5px;font-weight:700;white-space:nowrap;padding:20px 0;
+  transition:color .15s ease}
+.navbar-links a:hover,.navbar-links a.ativo{color:#eba52d}
+.navbar-user{margin-left:auto;flex-shrink:0;display:flex;align-items:center;gap:5px;color:#6b7280}
+.navbar-user .avatar{width:36px;height:36px;border-radius:50%;background:#e9ecef;display:flex;
+  align-items:center;justify-content:center;font-size:19px;color:#8a92a6}
+.navbar-user .seta{font-size:11px}
+.navbar-burger{display:none;margin-left:auto;background:none;border:1px solid #dde1e6;border-radius:8px;
+  font-size:20px;line-height:1;padding:7px 12px;cursor:pointer;color:#1d2125}
+@media(max-width:1080px){
+  .navbar-links{position:absolute;top:64px;left:0;right:0;background:#fff;flex-direction:column;
+    align-items:stretch;gap:0;padding:8px 0;box-shadow:0 12px 24px rgba(0,0,0,.12);display:none;overflow:visible}
+  .navbar-links.aberto{display:flex}
+  .navbar-links a{padding:13px 24px;border-bottom:1px solid #f0f2f5}
+  .navbar-burger{display:block}
+  .navbar-user{margin-left:8px}
+}
 /* cabeçalho */
 .cabecalho{text-align:center;padding:40px 20px 8px}
 .cabecalho h1{font-size:clamp(26px,3.6vw,36px);font-weight:800;color:#071f8f;margin-bottom:8px}
@@ -106,17 +151,25 @@ a{text-decoration:none}
 /* rodapé */
 .rodape{background:#0d9488;padding:16px 24px;text-align:center;font-size:12px;color:rgba(255,255,255,.85);
   text-transform:uppercase;letter-spacing:.04em;line-height:1.8}
-@media(max-width:640px){.parceiro-corpo{padding:20px 18px}.topo img{height:32px}}
+@media(max-width:640px){.parceiro-corpo{padding:20px 18px}.navbar-logo img{height:34px}}
 </style>
 </head>
 <body>
-<header class="topo">
-  <div class="topo-inner">
-    <img src="https://cecapescs.com.br/logos/logo-seeduc.png" alt="SEEDUC">
-    <div class="div"></div>
-    <img src="https://cecapescs.com.br/logos/logo-autoriascs.png" alt="AutoriaSCS">
-    <div class="div"></div>
-    <img src="https://cecapescs.com.br/logos/logo-cecape-new.png" alt="CECAPE">
+<header class="navbar">
+  <div class="navbar-inner">
+    <a class="navbar-logo" href="<?= ep($PLATAFORMA_URL) ?>/">
+      <img src="<?= ep($LOGO_MENU) ?>" alt="CECAPE">
+    </a>
+    <button class="navbar-burger" type="button" aria-label="Abrir menu"
+            onclick="document.getElementById('menuLinks').classList.toggle('aberto')">☰</button>
+    <nav class="navbar-links" id="menuLinks">
+      <?php foreach ($MENU as $item): ?>
+      <a href="<?= ep($item['url']) ?>" class="<?= !empty($item['ativo']) ? 'ativo' : '' ?>"><?= ep($item['rotulo']) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <a class="navbar-user" href="<?= ep($LOGIN_URL) ?>" title="Entrar na plataforma">
+      <span class="avatar">👤</span><span class="seta">▾</span>
+    </a>
   </div>
 </header>
 
